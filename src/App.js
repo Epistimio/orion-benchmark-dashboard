@@ -5,13 +5,19 @@ import TutorialHeader from './components/TutorialHeader';
 import ExperimentNavBar from './components/ExperimentNavBar';
 import VisualizationsPage from './content/VisualizationsPage';
 import { BackendContext, DEFAULT_BACKEND } from './BackendContext';
+import { Backend } from './utils/queryServer';
 
 class App extends Component {
   constructor(props) {
     super(props);
     // Store selected experiment here
-    this.state = { experiment: null };
-    this.onSelectExperiment = this.onSelectExperiment.bind(this);
+    this.state = {
+      benchmarks: null,
+      benchmark: null,
+      algorithms: null,
+      tasks: null,
+    };
+    this.onSelectBenchmark = this.onSelectBenchmark.bind(this);
   }
   render() {
     return (
@@ -19,21 +25,39 @@ class App extends Component {
         <BackendContext.Provider
           value={{
             address: DEFAULT_BACKEND,
-            // Pass selected experiment as React context
-            // so that it is available in route components
-            experiment: this.state.experiment,
           }}>
           <TutorialHeader />
-          <ExperimentNavBar onSelectExperiment={this.onSelectExperiment} />
+          <ExperimentNavBar
+            benchmarks={this.state.benchmarks}
+            benchmark={this.state.benchmark}
+            algorithms={this.state.algorithms}
+            tasks={this.state.tasks}
+            onSelectBenchmark={this.onSelectBenchmark}
+          />
           <Content>
-            <VisualizationsPage />
+            <VisualizationsPage
+              benchmark={this.state.benchmark}
+              algorithms={this.state.algorithms}
+              tasks={this.state.tasks}
+            />
           </Content>
         </BackendContext.Provider>
       </>
     );
   }
-  onSelectExperiment(experiment) {
-    this.setState({ experiment });
+  componentDidMount() {
+    const backend = new Backend(DEFAULT_BACKEND);
+    backend
+      .query('benchmarks')
+      .then(benchmarks => {
+        this.setState({ benchmarks });
+      })
+      .catch(error => {
+        this.setState({ benchmarks: [] });
+      });
+  }
+  onSelectBenchmark(benchmark, algorithms, tasks) {
+    this.setState({ benchmark, algorithms, tasks });
   }
 }
 

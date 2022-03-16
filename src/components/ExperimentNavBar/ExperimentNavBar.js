@@ -13,29 +13,27 @@ import {
 } from 'carbon-components-react';
 
 function getAlgorithmName(algoDef) {
-  if (algoDef.hasOwnProperty('algorithm')) return algoDef.algorithm;
+  if (typeof algoDef === 'string') return algoDef;
   const keys = Object.keys(algoDef);
   if (keys.length === 1) return keys[0];
-  return algoDef;
+  else return 'algorithm';
 }
 
 export class ExperimentNavBar extends React.Component {
   static contextType = BackendContext;
   constructor(props) {
-    // prop: onSelectExperiment: function(experiment)
+    // props:
+    // benchmarks: list of JSON objects representing benchmarks
+    // benchmark: JSON object representing a benchmark
+    // algorithms: set of strings
+    // tasks: set of strings
     super(props);
-    this.state = {
-      benchmarks: null,
-      benchmark: null,
-      algorithms: new Set(),
-      tasks: new Set(),
-    };
     this.onChangeComboBox = this.onChangeComboBox.bind(this);
     this.onSelectAlgo = this.onSelectAlgo.bind(this);
     this.onSelectTask = this.onSelectTask.bind(this);
   }
   render() {
-    return this.state.benchmarks === null ? (
+    return this.props.benchmarks === null ? (
       ''
     ) : (
       <SideNav
@@ -46,11 +44,11 @@ export class ExperimentNavBar extends React.Component {
         <ComboBox
           onChange={this.onChangeComboBox}
           id={'combobox-benchmark'}
-          items={this.state.benchmarks}
+          items={this.props.benchmarks}
           itemToString={item => (item === null ? null : item.name)}
           placeholder={'Search a benchmark ...'}
         />
-        {this.state.benchmark === null ? (
+        {this.props.benchmark === null ? (
           ''
         ) : (
           <StructuredListWrapper>
@@ -69,7 +67,7 @@ export class ExperimentNavBar extends React.Component {
     );
   }
   renderBenchmarkSettings() {
-    const benchmark = this.state.benchmark;
+    const benchmark = this.props.benchmark;
     const algorithms = benchmark.algorithms.map(algo => getAlgorithmName(algo));
     const tasks = Object.keys(benchmark.tasks);
     algorithms.sort();
@@ -91,7 +89,7 @@ export class ExperimentNavBar extends React.Component {
             <Checkbox
               labelText={row.algorithm}
               id={`algorithm-${i}`}
-              checked={this.state.algorithms.has(row.algorithm)}
+              checked={this.props.algorithms.has(row.algorithm)}
               onChange={(checked, id, event) =>
                 this.onSelectAlgo(row.algorithm, checked)
               }
@@ -105,7 +103,7 @@ export class ExperimentNavBar extends React.Component {
             <Checkbox
               labelText={row.task}
               id={`task-${i}`}
-              checked={this.state.tasks.has(row.task)}
+              checked={this.props.tasks.has(row.task)}
               onChange={(checked, id, event) =>
                 this.onSelectTask(row.task, checked)
               }
@@ -115,43 +113,40 @@ export class ExperimentNavBar extends React.Component {
       </StructuredListRow>
     ));
   }
-  componentDidMount() {
-    const backend = new Backend(this.context.address);
-    backend
-      .query('benchmarks')
-      .then(benchmarks => {
-        this.setState({ benchmarks });
-      })
-      .catch(error => {
-        this.setState({ benchmarks: [] });
-      });
-  }
   onChangeComboBox(event) {
     const benchmark = event.selectedItem;
     if (benchmark === null) {
-      this.setState({ benchmark, algorithms: new Set(), tasks: new Set() });
+      this.props.onSelectBenchmark(benchmark, new Set(), new Set());
     } else {
       const algorithms = benchmark.algorithms.map(algo =>
         getAlgorithmName(algo)
       );
-      this.setState({
+      this.props.onSelectBenchmark(
         benchmark,
-        algorithms: new Set(algorithms),
-        tasks: new Set(Object.keys(benchmark.tasks)),
-      });
+        new Set(algorithms),
+        new Set(Object.keys(benchmark.tasks))
+      );
     }
   }
   onSelectAlgo(algorithm, checked) {
-    const algorithms = new Set(this.state.algorithms);
+    const algorithms = new Set(this.props.algorithms);
     if (checked) algorithms.add(algorithm);
     else algorithms.delete(algorithm);
-    this.setState({ algorithms });
+    this.props.onSelectBenchmark(
+      this.props.benchmark,
+      algorithms,
+      this.props.tasks
+    );
   }
   onSelectTask(task, checked) {
-    const tasks = new Set(this.state.tasks);
+    const tasks = new Set(this.props.tasks);
     if (checked) tasks.add(task);
     else tasks.delete(task);
-    this.setState({ tasks });
+    this.props.onSelectBenchmark(
+      this.props.benchmark,
+      this.props.algorithms,
+      tasks
+    );
   }
 }
 

@@ -4,134 +4,83 @@ import { LocalParameterImportancePlot } from './LocalParameterImportancePlot';
 import { ParallelCoordinatesPlotConst } from './ParallelCoordinatesPlot';
 import { BackendContext } from '../../BackendContext';
 import { Backend } from '../../utils/queryServer';
+import { PlotRender } from './PlotRender';
 
 class PlotGrid extends React.Component {
   // Use BackendContext to retrieve current selected experiment.
-  static contextType = BackendContext;
   constructor(props) {
+    // props:
+    // benchmark: JSON object representing a benchmark
+    // algorithms: set of strings
+    // tasks: set of strings
     super(props);
-    this.state = {
-      experiment: null,
-      regret: false,
-      parallel_coordinates: false,
-      lpi: false,
-      keyCount: 0, // key to force re-rendering
-    };
   }
   render() {
+    if (this.props.benchmark === null) {
+      return (
+        <div>
+          <h4>No benchmark selected</h4>
+        </div>
+      );
+    }
+    if (!this.props.tasks.size) {
+      return (
+        <div>
+          <h4>No task selected</h4>
+        </div>
+      );
+    }
+    if (!this.props.algorithms.size) {
+      return (
+        <div>
+          <h4>No algorithm selected</h4>
+        </div>
+      );
+    }
+    const assessments = Object.keys(this.props.benchmark.assessments);
+    const tasks = Array.from(this.props.tasks);
+    const algorithms = Array.from(this.props.algorithms);
+    assessments.sort();
+    tasks.sort();
+    algorithms.sort();
     return (
       <div>
         <h4>Assessments</h4>
-        <div
-          className="bx--grid bx--grid--full-width"
-          key={this.state.keyCount}>
+        <div className="bx--grid bx--grid--full-width">
           <div className="bx--row">
-            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-              <div className="bx--tile plot-tile">{this.renderRegret()}</div>
-            </div>
-            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-              <div className="bx--tile plot-tile">
-                {this.renderParallelCoordinates()}
+            {assessments.map((assessment, i) => (
+              <div
+                key={i}
+                className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+                <div className="bx--tile plot-tile">
+                  <strong>{assessment}</strong>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-          <div className="bx--row">
-            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-              <div className="bx--tile plot-tile">{this.renderLPI()}</div>
+          {tasks.map((task, i) => (
+            <div key={i} className="bx--row">
+              {assessments.map((assessment, j) => (
+                <div
+                  key={j}
+                  className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+                  <div className="bx--tile plot-tile">
+                    <PlotRender
+                      key={`render-${
+                        this.props.benchmark.name
+                      }-${assessment}-${task}-${algorithms.join('-')}`}
+                      benchmark={this.props.benchmark.name}
+                      assessment={assessment}
+                      task={task}
+                      algorithms={algorithms}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          ))}
         </div>
       </div>
-    );
-  }
-  renderRegret() {
-    if (this.state.regret === null)
-      return `Loading regret plot for: ${this.state.experiment} ...`;
-    if (this.state.regret === false) return `Nothing to display`;
-    return (
-      <RegretConst
-        data={this.state.regret.data}
-        layout={this.state.regret.layout}
-      />
-    );
-  }
-  renderParallelCoordinates() {
-    if (this.state.parallel_coordinates === null)
-      return `Loading parallel coordinates plot for: ${
-        this.state.experiment
-      } ...`;
-    if (this.state.parallel_coordinates === false) return 'Nothing to display';
-    return (
-      <ParallelCoordinatesPlotConst
-        data={this.state.parallel_coordinates.data}
-        layout={this.state.parallel_coordinates.layout}
-      />
-    );
-  }
-  renderLPI() {
-    if (this.state.lpi === null)
-      return `Loading LPI plot for: ${this.state.experiment} ...`;
-    if (this.state.lpi === false) return 'Nothing to display';
-    return (
-      <LocalParameterImportancePlot
-        data={this.state.lpi.data}
-        layout={this.state.lpi.layout}
-      />
-    );
-  }
-  componentDidMount() {
-    // We must check if there is an experiment to visualize
-    const experiment = this.context.experiment;
-    if (experiment !== null) {
-      this.loadBackendData(experiment);
-    }
-  }
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    // We must check if selected experiment changed
-    const experiment = this.context.experiment;
-    if (this.state.experiment !== experiment) {
-      if (experiment === null) {
-        this.setState({
-          experiment,
-          regret: false,
-          parallel_coordinates: false,
-          lpi: false,
-        });
-      } else {
-        this.loadBackendData(experiment);
-      }
-    }
-  }
-  loadBackendData(experiment) {
-    // Load experiments data for plotting
-    this.setState(
-      { experiment, regret: null, parallel_coordinates: null, lpi: null },
-      () => {
-        const backend = new Backend(this.context.address);
-        const promiseRegret = backend.query(`plots/regret/${experiment}`);
-        const promisePC = backend.query(
-          `plots/parallel_coordinates/${experiment}`
-        );
-        const promiseLPI = backend.query(`plots/lpi/${experiment}`);
-        Promise.allSettled([promiseRegret, promisePC, promiseLPI]).then(
-          results => {
-            const [resRegret, resPC, resLPI] = results;
-            const regret =
-              resRegret.status === 'fulfilled' ? resRegret.value : false;
-            const parallel_coordinates =
-              resPC.status === 'fulfilled' ? resPC.value : false;
-            const lpi = resLPI.status === 'fulfilled' ? resLPI.value : false;
-            const keyCount = this.state.keyCount + 1;
-            this.setState({
-              experiment,
-              regret,
-              parallel_coordinates,
-              lpi,
-              keyCount,
-            });
-          }
-        );
-      }
     );
   }
 }
