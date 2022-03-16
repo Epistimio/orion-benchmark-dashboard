@@ -20,20 +20,25 @@ class PlotGrid extends React.Component {
   }
   render() {
     return (
-      <div className="bx--grid bx--grid--full-width" key={this.state.keyCount}>
-        <div className="bx--row">
-          <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-            <div className="bx--tile plot-tile">{this.renderRegret()}</div>
-          </div>
-          <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-            <div className="bx--tile plot-tile">
-              {this.renderParallelCoordinates()}
+      <div>
+        <h4>Assessments</h4>
+        <div
+          className="bx--grid bx--grid--full-width"
+          key={this.state.keyCount}>
+          <div className="bx--row">
+            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+              <div className="bx--tile plot-tile">{this.renderRegret()}</div>
+            </div>
+            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+              <div className="bx--tile plot-tile">
+                {this.renderParallelCoordinates()}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="bx--row">
-          <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
-            <div className="bx--tile plot-tile">{this.renderLPI()}</div>
+          <div className="bx--row">
+            <div className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+              <div className="bx--tile plot-tile">{this.renderLPI()}</div>
+            </div>
           </div>
         </div>
       </div>
