@@ -1,9 +1,4 @@
 import React from 'react';
-import { RegretConst } from './RegretPlot';
-import { LocalParameterImportancePlot } from './LocalParameterImportancePlot';
-import { ParallelCoordinatesPlotConst } from './ParallelCoordinatesPlot';
-import { BackendContext } from '../../BackendContext';
-import { Backend } from '../../utils/queryServer';
 import { PlotRender } from './PlotRender';
 
 class PlotGrid extends React.Component {
