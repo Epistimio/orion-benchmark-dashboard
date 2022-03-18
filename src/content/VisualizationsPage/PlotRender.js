@@ -15,29 +15,35 @@ export class PlotRender extends React.Component {
     // algorithms: list of strings
     super(props);
     this.state = {
-      plot: null,
+      plots: null,
     };
   }
   render() {
-    return this.state.plot === null ? (
-      `Loading plot for assessment: ${this.props.assessment}, task: ${
+    return this.state.plots === null ? (
+      `Loading plots for assessment: ${this.props.assessment}, task: ${
         this.props.task
       }, algorithms: ${this.props.algorithms.join(', ')}`
-    ) : this.state.plot === false ? (
-      <strong>{`Unable to load plot for assessment: ${
+    ) : this.state.plots === false ? (
+      <strong>{`Unable to load plots for assessment: ${
         this.props.assessment
       }, task: ${this.props.task}, algorithms: ${this.props.algorithms.join(
         ', '
       )}`}</strong>
     ) : (
-      <Plot
-        id={`plot-${this.props.assessment}-${this.props.task}`}
-        data={this.state.plot.data}
-        layout={this.state.plot.layout}
-        config={{ responsive: true }}
-        useResizeHandler={true}
-        style={{ width: '100%' }}
-      />
+      this.state.plots.map((plotDef, plotIndex) => {
+        const [plotName, plot] = plotDef;
+        return (
+          <Plot
+            key={plotIndex}
+            id={`plot-${this.props.assessment}-${this.props.task}-${plotName}`}
+            data={plot.data}
+            layout={plot.layout}
+            config={{ responsive: true }}
+            useResizeHandler={true}
+            style={{ width: '100%' }}
+          />
+        );
+      })
     );
   }
   componentDidMount() {
@@ -48,19 +54,25 @@ export class PlotRender extends React.Component {
     }&task=${this.props.task}&algorithms=${this.props.algorithms.join(
       '&algorithms='
     )}`;
-    console.log(`Loading: ${query}`);
+    console.log(`Loading: ${this.context.address}/${query}`);
     backend
       .query(query)
       .then(data => {
-        if (this._isMounted)
+        if (this._isMounted) {
+          const plots = data.analysis[this.props.assessment][this.props.task];
+          const plotNames = Object.keys(plots);
+          plotNames.sort();
           this.setState({
-            plot: JSON.parse(
-              data.analysis[this.props.assessment][this.props.task]
-            ),
+            plots: plotNames.map(plotName => [
+              plotName,
+              JSON.parse(plots[plotName]),
+            ]),
           });
+        }
       })
       .catch(error => {
-        if (this._isMounted) this.setState({ plot: false });
+        console.error(error);
+        if (this._isMounted) this.setState({ plots: false });
       });
   }
   componentWillUnmount() {

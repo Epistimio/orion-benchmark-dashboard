@@ -27,20 +27,32 @@ class App extends Component {
             address: DEFAULT_BACKEND,
           }}>
           <TutorialHeader />
-          <ExperimentNavBar
-            benchmarks={this.state.benchmarks}
-            benchmark={this.state.benchmark}
-            algorithms={this.state.algorithms}
-            tasks={this.state.tasks}
-            onSelectBenchmark={this.onSelectBenchmark}
-          />
-          <Content>
-            <VisualizationsPage
-              benchmark={this.state.benchmark}
-              algorithms={this.state.algorithms}
-              tasks={this.state.tasks}
-            />
-          </Content>
+          {this.state.benchmarks === null ? (
+            <Content>
+              <h4>Loading benchmarks ...</h4>
+            </Content>
+          ) : this.state.benchmarks.length === 0 ? (
+            <Content>
+              <h4>No benchmarks available</h4>
+            </Content>
+          ) : (
+            <>
+              <ExperimentNavBar
+                benchmarks={this.state.benchmarks}
+                benchmark={this.state.benchmark}
+                algorithms={this.state.algorithms}
+                tasks={this.state.tasks}
+                onSelectBenchmark={this.onSelectBenchmark}
+              />
+              <Content>
+                <VisualizationsPage
+                  benchmark={this.state.benchmark}
+                  algorithms={this.state.algorithms}
+                  tasks={this.state.tasks}
+                />
+              </Content>
+            </>
+          )}
         </BackendContext.Provider>
       </>
     );

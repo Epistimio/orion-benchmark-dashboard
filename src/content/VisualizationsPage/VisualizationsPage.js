@@ -46,9 +46,11 @@ class PlotGrid extends React.Component {
             {assessments.map((assessment, i) => (
               <div
                 key={i}
-                className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+                className="bx--col-sm-16 bx--col-md bx--col-lg bx--col-xlg">
                 <div className="bx--tile plot-tile">
-                  <strong>{assessment}</strong>
+                  <strong>
+                    <em>{assessment}</em>
+                  </strong>
                 </div>
               </div>
             ))}
@@ -58,7 +60,7 @@ class PlotGrid extends React.Component {
               {assessments.map((assessment, j) => (
                 <div
                   key={j}
-                  className="bx--col-sm-16 bx--col-md-8 bx--col-lg-8 bx--col-xlg-8">
+                  className="bx--col-sm-16 bx--col-md bx--col-lg bx--col-xlg">
                   <div className="bx--tile plot-tile">
                     <PlotRender
                       key={`render-${

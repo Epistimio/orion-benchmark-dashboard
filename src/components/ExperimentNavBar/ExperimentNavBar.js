@@ -1,5 +1,4 @@
 import React from 'react';
-import { Backend } from '../../utils/queryServer';
 import { BackendContext } from '../../BackendContext';
 import {
   SideNav,
@@ -16,7 +15,10 @@ function getAlgorithmName(algoDef) {
   if (typeof algoDef === 'string') return algoDef;
   const keys = Object.keys(algoDef);
   if (keys.length === 1) return keys[0];
-  else return 'algorithm';
+  else
+    throw new Error(
+      `Cannot get algorithm name from object: ${JSON.stringify(algoDef)}`
+    );
 }
 
 export class ExperimentNavBar extends React.Component {
