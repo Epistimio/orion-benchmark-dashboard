@@ -84,10 +84,13 @@ export class PlotRender extends React.Component {
       )}`}</strong>
     ) : (
       this.state.plots.map((plot, plotIndex) => {
+        const id = `plot-${this.props.benchmark}-${this.props.assessment}-${
+          this.props.task
+        }-${plot.name}-${this.props.algorithms.join('-')}`;
         return (
           <Plot
-            key={plotIndex}
-            id={`plot-${this.props.assessment}-${this.props.task}-${plot.name}`}
+            key={id}
+            id={id}
             data={plot.data}
             layout={plot.layout}
             config={{ responsive: true }}

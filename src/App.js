@@ -16,6 +16,7 @@ class App extends Component {
       benchmark: null,
       algorithms: null,
       tasks: null,
+      assessments: null,
     };
     this.onSelectBenchmark = this.onSelectBenchmark.bind(this);
   }
@@ -42,6 +43,7 @@ class App extends Component {
                 benchmark={this.state.benchmark}
                 algorithms={this.state.algorithms}
                 tasks={this.state.tasks}
+                assessments={this.state.assessments}
                 onSelectBenchmark={this.onSelectBenchmark}
               />
               <Content>
@@ -49,6 +51,7 @@ class App extends Component {
                   benchmark={this.state.benchmark}
                   algorithms={this.state.algorithms}
                   tasks={this.state.tasks}
+                  assessments={this.state.assessments}
                 />
               </Content>
             </>
@@ -68,8 +71,8 @@ class App extends Component {
         this.setState({ benchmarks: [] });
       });
   }
-  onSelectBenchmark(benchmark, algorithms, tasks) {
-    this.setState({ benchmark, algorithms, tasks });
+  onSelectBenchmark(benchmark, algorithms, tasks, assessments) {
+    this.setState({ benchmark, algorithms, tasks, assessments });
   }
 }
 
