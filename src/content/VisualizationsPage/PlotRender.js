@@ -1,7 +1,60 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
-import { BackendContext } from '../../BackendContext';
+import { BackendContext, DEFAULT_BACKEND } from '../../BackendContext';
 import { Backend } from '../../utils/queryServer';
+
+class PlotData {
+  constructor(name, data, layout) {
+    this.name = name;
+    this.data = data;
+    this.layout = layout;
+  }
+
+  get(algorithms) {
+    const data = [];
+    for (let entry of this.data) {
+      for (let algorithm of algorithms) {
+        if (
+          entry.name.indexOf(algorithm) === 0 ||
+          entry.name.indexOf(`${algorithm}_`) === 0
+        ) {
+          data.push(entry);
+        }
+      }
+    }
+    return { data, layout: this.layout, name: this.name };
+  }
+}
+
+class PlotsProvider {
+  constructor(address) {
+    this.backend = new Backend(address);
+    this.plots = {};
+  }
+  async get(benchmark, assessment, task, algorithms) {
+    /**@type {Array<PlotData>}*/
+    let plots = ((this.plots[benchmark] || {})[assessment] || {})[task] || [];
+    if (!plots.length) {
+      const query = `benchmarks/${benchmark}?assessment=${assessment}&task=${task}`;
+      console.log(`Loading: ${this.backend.baseURL}/${query}`);
+      const data = await this.backend.query(query);
+      const jsonData = data.analysis[assessment][task];
+      const plotNames = Object.keys(jsonData);
+      plotNames.sort();
+      for (let name of plotNames) {
+        const parsed = JSON.parse(jsonData[name]);
+        plots.push(new PlotData(name, parsed.data, parsed.layout));
+      }
+      if (this.plots[benchmark] === undefined) this.plots[benchmark] = {};
+      if (this.plots[benchmark][assessment] === undefined)
+        this.plots[benchmark][assessment] = {};
+      if (this.plots[benchmark][assessment][task] === undefined)
+        this.plots[benchmark][assessment][task] = plots;
+    }
+    return plots.map(plotData => plotData.get(algorithms));
+  }
+}
+const PLOTS_PROVIDER = new PlotsProvider(DEFAULT_BACKEND);
 
 export class PlotRender extends React.Component {
   // Control variable to avoid setting state if component was unmounted before an asynchronous API call finished.
@@ -30,12 +83,11 @@ export class PlotRender extends React.Component {
         ', '
       )}`}</strong>
     ) : (
-      this.state.plots.map((plotDef, plotIndex) => {
-        const [plotName, plot] = plotDef;
+      this.state.plots.map((plot, plotIndex) => {
         return (
           <Plot
             key={plotIndex}
-            id={`plot-${this.props.assessment}-${this.props.task}-${plotName}`}
+            id={`plot-${this.props.assessment}-${this.props.task}-${plot.name}`}
             data={plot.data}
             layout={plot.layout}
             config={{ responsive: true }}
@@ -48,26 +100,15 @@ export class PlotRender extends React.Component {
   }
   componentDidMount() {
     this._isMounted = true;
-    const backend = new Backend(this.context.address);
-    const query = `benchmarks/${this.props.benchmark}?assessment=${
-      this.props.assessment
-    }&task=${this.props.task}&algorithms=${this.props.algorithms.join(
-      '&algorithms='
-    )}`;
-    console.log(`Loading: ${this.context.address}/${query}`);
-    backend
-      .query(query)
-      .then(data => {
+    PLOTS_PROVIDER.get(
+      this.props.benchmark,
+      this.props.assessment,
+      this.props.task,
+      this.props.algorithms
+    )
+      .then(plots => {
         if (this._isMounted) {
-          const plots = data.analysis[this.props.assessment][this.props.task];
-          const plotNames = Object.keys(plots);
-          plotNames.sort();
-          this.setState({
-            plots: plotNames.map(plotName => [
-              plotName,
-              JSON.parse(plots[plotName]),
-            ]),
-          });
+          this.setState({ plots });
         }
       })
       .catch(error => {
