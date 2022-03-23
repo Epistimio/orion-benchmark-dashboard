@@ -2,7 +2,6 @@ import React from 'react';
 import { PlotRender } from './PlotRender';
 
 class PlotGrid extends React.Component {
-  // Use BackendContext to retrieve current selected experiment.
   constructor(props) {
     // props:
     // benchmark: JSON object representing a benchmark

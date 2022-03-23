@@ -1,11 +1,8 @@
 import React from 'react';
-import { BackendContext } from '../../BackendContext';
 import {
   SideNav,
   Checkbox,
   StructuredListWrapper,
-  StructuredListHead,
-  StructuredListBody,
   StructuredListRow,
   StructuredListCell,
   ComboBox,
@@ -22,7 +19,6 @@ function getAlgorithmName(algoDef) {
 }
 
 export class ExperimentNavBar extends React.Component {
-  static contextType = BackendContext;
   constructor(props) {
     // props:
     // benchmarks: list of JSON objects representing benchmarks

@@ -1,6 +1,6 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
-import { BackendContext, DEFAULT_BACKEND } from '../../BackendContext';
+import { DEFAULT_BACKEND } from '../../BackendContext';
 import { Backend } from '../../utils/queryServer';
 
 class PlotData {
@@ -59,7 +59,6 @@ const PLOTS_PROVIDER = new PlotsProvider(DEFAULT_BACKEND);
 export class PlotRender extends React.Component {
   // Control variable to avoid setting state if component was unmounted before an asynchronous API call finished.
   _isMounted = false;
-  static contextType = BackendContext;
   constructor(props) {
     // props:
     // benchmark: str
