@@ -63,6 +63,7 @@ class App extends Component {
         this.setState({ benchmarks });
       })
       .catch(error => {
+        console.error(error);
         this.setState({ benchmarks: [] });
       });
   }

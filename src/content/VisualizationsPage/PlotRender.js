@@ -37,12 +37,12 @@ class PlotsProvider {
     if (!plots.length) {
       const query = `benchmarks/${benchmark}?assessment=${assessment}&task=${task}`;
       console.log(`Loading: ${this.backend.baseURL}/${query}`);
-      const data = await this.backend.query(query);
-      const jsonData = data.analysis[assessment][task];
-      const plotNames = Object.keys(jsonData);
+      const response = await this.backend.query(query);
+      const rawPlots = response.analysis[assessment][task];
+      const plotNames = Object.keys(rawPlots);
       plotNames.sort();
       for (let name of plotNames) {
-        const parsed = JSON.parse(jsonData[name]);
+        const parsed = JSON.parse(rawPlots[name]);
         plots.push(new PlotData(name, parsed.data, parsed.layout));
       }
       if (this.plots[benchmark] === undefined) this.plots[benchmark] = {};
@@ -89,7 +89,7 @@ export class PlotRender extends React.Component {
         return (
           <Plot
             key={id}
-            id={id}
+            divId={id}
             data={plot.data}
             layout={plot.layout}
             config={{ responsive: true }}
