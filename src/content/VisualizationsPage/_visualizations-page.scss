@@ -67,3 +67,33 @@ $feature-flags: (
   //width: inherit;
   //height: inherit;
 }
+
+.bx--tile {
+  overflow: visible;
+  white-space: normal;
+}
+
+.assessments {
+  white-space: nowrap;
+  position: relative;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.assessments .assessment {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.assessments .assessment .orion-plots {
+  width: 100%;
+  position: relative;
+  display: flex;
+}
+
+.assessments .assessment .orion-plot {
+  width: 100%;
+}

@@ -84,23 +84,21 @@ export class PlotRender extends React.Component {
         )}`}</strong>
       );
     return (
-      <div className="viz-plots">
+      <div className="orion-plots">
         {this.state.plots.map((plot, plotIndex) => {
           const id = `plot-${this.props.benchmark}-${this.props.assessment}-${
             this.props.task
           }-${plot.name}-${this.props.algorithms.join('-')}`;
           return (
-            <div key={plotIndex} className="viz-plot">
-              <Plot
-                key={id}
-                divId={id}
-                data={plot.data}
-                layout={plot.layout}
-                config={{ responsive: true }}
-                useResizeHandler={true}
-                className="orion-plot"
-              />
-            </div>
+            <Plot
+              className="orion-plot"
+              key={id}
+              divId={id}
+              data={plot.data}
+              layout={plot.layout}
+              config={{ responsive: true }}
+              useResizeHandler={true}
+            />
           );
         })}
       </div>
@@ -126,5 +124,19 @@ export class PlotRender extends React.Component {
   }
   componentWillUnmount() {
     this._isMounted = false;
+  }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // Trigger a window resize event to force displayed plots to resize correctly.
+    // Reference (2022/03/24): https://stackoverflow.com/a/43846782
+    if (typeof Event === 'function') {
+      // modern browsers
+      window.dispatchEvent(new Event('resize'));
+    } else {
+      // for IE and other old browsers
+      // causes deprecation warning on modern browsers
+      var evt = window.document.createEvent('UIEvents');
+      evt.initUIEvent('resize', true, false, window, 0);
+      window.dispatchEvent(evt);
+    }
   }
 }
