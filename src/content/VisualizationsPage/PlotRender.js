@@ -71,33 +71,39 @@ export class PlotRender extends React.Component {
     };
   }
   render() {
-    return this.state.plots === null ? (
-      `Loading plots for assessment: ${this.props.assessment}, task: ${
+    if (this.state.plots === null)
+      return `Loading plots for assessment: ${this.props.assessment}, task: ${
         this.props.task
-      }, algorithms: ${this.props.algorithms.join(', ')}`
-    ) : this.state.plots === false ? (
-      <strong>{`Unable to load plots for assessment: ${
-        this.props.assessment
-      }, task: ${this.props.task}, algorithms: ${this.props.algorithms.join(
-        ', '
-      )}`}</strong>
-    ) : (
-      this.state.plots.map((plot, plotIndex) => {
-        const id = `plot-${this.props.benchmark}-${this.props.assessment}-${
-          this.props.task
-        }-${plot.name}-${this.props.algorithms.join('-')}`;
-        return (
-          <Plot
-            key={id}
-            divId={id}
-            data={plot.data}
-            layout={plot.layout}
-            config={{ responsive: true }}
-            useResizeHandler={true}
-            style={{ width: '100%' }}
-          />
-        );
-      })
+      }, algorithms: ${this.props.algorithms.join(', ')}`;
+    if (this.state.plots === false)
+      return (
+        <strong>{`Unable to load plots for assessment: ${
+          this.props.assessment
+        }, task: ${this.props.task}, algorithms: ${this.props.algorithms.join(
+          ', '
+        )}`}</strong>
+      );
+    return (
+      <div className="viz-plots">
+        {this.state.plots.map((plot, plotIndex) => {
+          const id = `plot-${this.props.benchmark}-${this.props.assessment}-${
+            this.props.task
+          }-${plot.name}-${this.props.algorithms.join('-')}`;
+          return (
+            <div key={plotIndex} className="viz-plot">
+              <Plot
+                key={id}
+                divId={id}
+                data={plot.data}
+                layout={plot.layout}
+                config={{ responsive: true }}
+                useResizeHandler={true}
+                className="orion-plot"
+              />
+            </div>
+          );
+        })}
+      </div>
     );
   }
   componentDidMount() {

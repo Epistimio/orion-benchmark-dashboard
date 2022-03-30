@@ -1,5 +1,6 @@
 import React from 'react';
 import { PlotRender } from './PlotRender';
+import { Tile, Grid, Row, Column } from 'carbon-components-react';
 
 export class VisualizationsPage extends React.Component {
   /**
@@ -57,27 +58,23 @@ export class VisualizationsPage extends React.Component {
     return (
       <div>
         <h4 className="title-visualizations">Assessments</h4>
-        <div className="bx--grid bx--grid--full-width">
-          <div className="bx--row">
+        <Grid fullWidth>
+          <Row>
             {assessments.map((assessment, i) => (
-              <div
-                key={`assessment-${assessment}`}
-                className="bx--col-sm-16 bx--col-md bx--col-lg bx--col-xlg">
-                <div className="bx--tile plot-tile">
+              <Column key={`assessment-${assessment}`}>
+                <Tile className="plot-tile">
                   <strong>
                     <em>{assessment}</em>
                   </strong>
-                </div>
-              </div>
+                </Tile>
+              </Column>
             ))}
-          </div>
+          </Row>
           {tasks.map((task, i) => (
-            <div key={`task-${task}`} className="bx--row">
+            <Row key={`task-${task}`}>
               {assessments.map((assessment, j) => (
-                <div
-                  key={`task-${task}-assessment-${assessment}`}
-                  className="bx--col-sm-16 bx--col-md bx--col-lg bx--col-xlg">
-                  <div className="bx--tile plot-tile">
+                <Column key={`task-${task}-assessment-${assessment}`}>
+                  <Tile className="plot-tile">
                     <PlotRender
                       key={`${prefix}-plots-${
                         this.props.benchmark.name
@@ -87,12 +84,12 @@ export class VisualizationsPage extends React.Component {
                       task={task}
                       algorithms={algorithms}
                     />
-                  </div>
-                </div>
+                  </Tile>
+                </Column>
               ))}
-            </div>
+            </Row>
           ))}
-        </div>
+        </Grid>
       </div>
     );
   }
