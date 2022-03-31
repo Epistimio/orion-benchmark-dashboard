@@ -6,6 +6,6 @@ import 'jest-canvas-mock';
 import '@testing-library/jest-dom';
 configure({ adapter: new Adapter() });
 // Increase test timeout to support long tests
-jest.setTimeout(10000);
+jest.setTimeout(300000);
 // Add necessary mock to test plotly (ref: https://github.com/plotly/react-plotly.js/issues/115#issuecomment-448687417)
 window.URL.createObjectURL = function() {};

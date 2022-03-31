@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   schedule:
     - cron: '44 4 * * *'
   release:
@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - run: python -m pip install git+https://github.com/Epistimio/orion.git
+      - run: python -m pip install git+https://github.com/notoraptor/orion.git@feature/benchmark_webapi#egg=orion[profet]
       - run: orion serve -c .github/workflows/orion/orion_config.yaml &
       # install
       - run: yarn
