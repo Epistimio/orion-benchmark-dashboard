@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - run: python -m pip install git+https://github.com/Epistimio/orion.git
+      - run: python -m pip install git+https://github.com/bouthilx/orion.git@feature/benchmark_webapi
       - run: orion serve -c .github/workflows/orion/orion_config.yaml &
       # install
       - run: yarn
