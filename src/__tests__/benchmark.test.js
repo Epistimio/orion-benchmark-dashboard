@@ -60,6 +60,34 @@ async function lookupPlot(...texts) {
   );
 }
 
+/**
+ * Check immediately (no async) that we find only 1 plot.
+ * @param texts - texts to search
+ * @return {boolean} - true if plot is found
+ */
+function hasPlotImmediately(...texts) {
+  const plots = document.querySelectorAll('.orion-plot');
+  const filtered = [];
+  for (let plot of plots.values()) {
+    if (plotHasTexts(plot, texts)) {
+      filtered.push(plot);
+    }
+  }
+  return filtered.length === 1;
+}
+
+/**
+ * Wait for given amount of time
+ * @param milliseonds - time to wait
+ */
+async function sleep(milliseonds) {
+  let value = 0;
+  await new Promise(r => setTimeout(r, milliseonds)).then(() => {
+    value = 1;
+  });
+  expect(value).toBe(1);
+}
+
 test('Test select benchmark', async () => {
   render(
     <Router>
@@ -177,4 +205,481 @@ test('Test select benchmark', async () => {
     'random_workers_1',
     'tpe_workers_1'
   );
+});
+
+test('Test (de)select assessments, tasks and algorithms', async () => {
+  render(
+    <Router>
+      <App />
+    </Router>
+  );
+  expect(await screen.findByText(/No benchmark selected/)).toBeInTheDocument();
+  // Get benchmark search field
+  const benchmarkField = await screen.findByPlaceholderText(
+    'Search a benchmark ...'
+  );
+  expect(benchmarkField).toBeInTheDocument();
+  // Select all_assessments_webapi_2
+  userEvent.type(benchmarkField, 'all_asses');
+  userEvent.keyboard('{enter}');
+  expect(benchmarkField.value).toBe('all_assessments_webapi_2');
+
+  // Make sure all plots are there (10 plots)
+  await lookupPlot(
+    'Average Rankings',
+    'Ranking based on branin',
+    'Trials ordered by suggested time'
+  );
+  await lookupPlot(
+    'Average Rankings',
+    'Ranking based on rosenbrock',
+    'Trials ordered by suggested time'
+  );
+  await lookupPlot(
+    'Average Regret',
+    'branin',
+    'Trials ordered by suggested time',
+    'random',
+    'tpe'
+  );
+  await lookupPlot(
+    'Average Regret',
+    'rosenbrock',
+    'Trials ordered by suggested time',
+    'random',
+    'tpe'
+  );
+  await lookupPlot(
+    'Time to result',
+    'branin',
+    'Experiment duration by second(s)'
+  );
+  await lookupPlot(
+    'Time to result',
+    'rosenbrock',
+    'Experiment duration by second(s)'
+  );
+  await lookupPlot('Parallel Assessment', 'branin', 'Number of workers');
+  await lookupPlot('Parallel Assessment', 'rosenbrock', 'Number of workers');
+  await lookupPlot(
+    'Average Regret',
+    'branin',
+    'Trials ordered by suggested time',
+    'random_workers_1',
+    'tpe_workers_1'
+  );
+  await lookupPlot(
+    'Average Regret',
+    'rosenbrock',
+    'Trials ordered by suggested time',
+    'random_workers_1',
+    'tpe_workers_1'
+  );
+
+  // Select 1 assessment, 1 task and 1 algorithm to be (de)selected.
+  const inputAssessmentAverageRank = document.getElementById('assessment-0');
+  const inputTaskBranin = document.getElementById('task-0');
+  const inputAlgorithmRandom = document.getElementById('algorithm-0');
+  expect(inputAssessmentAverageRank).toBeInTheDocument();
+  expect(inputTaskBranin).toBeInTheDocument();
+  expect(inputAlgorithmRandom).toBeInTheDocument();
+  expect(inputAssessmentAverageRank.checked).toBe(true);
+  expect(inputTaskBranin.checked).toBe(true);
+  expect(inputAlgorithmRandom.checked).toBe(true);
+
+  // Deselect assessment
+  userEvent.click(inputAssessmentAverageRank);
+  expect(inputAssessmentAverageRank.checked).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on rosenbrock',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(false);
+  // Reselect assessment.
+  userEvent.click(inputAssessmentAverageRank);
+  expect(inputAssessmentAverageRank.checked).toBe(true);
+  await sleep(200);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on rosenbrock',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(true);
+
+  // Deselect task.
+  userEvent.click(inputTaskBranin);
+  expect(inputTaskBranin.checked).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'branin',
+      'Experiment duration by second(s)'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately('Parallel Assessment', 'branin', 'Number of workers')
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(false);
+  // Reselect task.
+  userEvent.click(inputTaskBranin);
+  expect(inputTaskBranin.checked).toBe(true);
+  await sleep(200);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'branin',
+      'Experiment duration by second(s)'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately('Parallel Assessment', 'branin', 'Number of workers')
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+
+  // Deselect algorithm.
+  userEvent.click(inputAlgorithmRandom);
+  expect(inputAlgorithmRandom.checked).toBe(false);
+  // Check plots.
+  // We must not find plots with both random and tpe.
+  // We must find plots with only tpe.
+  await sleep(200);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time',
+      'tpe'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on rosenbrock',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on rosenbrock',
+      'Trials ordered by suggested time',
+      'tpe'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'tpe'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'tpe'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'branin',
+      'Experiment duration by second(s)',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'branin',
+      'Experiment duration by second(s)',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'rosenbrock',
+      'Experiment duration by second(s)',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'rosenbrock',
+      'Experiment duration by second(s)',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'branin',
+      'Number of workers',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'branin',
+      'Number of workers'
+      // 'tpe' // NB: When only 1 algorithm selected, algorithms legend is not displayed in Parallel Assessment plot
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'rosenbrock',
+      'Number of workers',
+      'random',
+      'tpe'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'rosenbrock',
+      'Number of workers'
+      // 'tpe'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(false);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+
+  // Reselect algorithm.
+  userEvent.click(inputAlgorithmRandom);
+  expect(inputAlgorithmRandom.checked).toBe(true);
+  await sleep(200);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Rankings',
+      'Ranking based on rosenbrock',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'branin',
+      'Experiment duration by second(s)',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Time to result',
+      'rosenbrock',
+      'Experiment duration by second(s)',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'branin',
+      'Number of workers',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Parallel Assessment',
+      'rosenbrock',
+      'Number of workers',
+      'random',
+      'tpe'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'branin',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
+  expect(
+    hasPlotImmediately(
+      'Average Regret',
+      'rosenbrock',
+      'Trials ordered by suggested time',
+      'random_workers_1',
+      'tpe_workers_1'
+    )
+  ).toBe(true);
 });
